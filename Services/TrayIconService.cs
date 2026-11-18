@@ -10,6 +10,7 @@ namespace MiftahFix.Services
         private readonly ContextMenuStrip _contextMenu;
 
         private readonly ToolStripMenuItem _showMenuItem;
+        private readonly ToolStripMenuItem _pauseMenuItem;
         private readonly ToolStripMenuItem _exitMenuItem;
 
         private bool _isDisposed;
@@ -38,6 +39,12 @@ namespace MiftahFix.Services
                     GraphicsUnit.Point)
             };
 
+            _pauseMenuItem = new ToolStripMenuItem
+            {
+                Name = "pauseMenuItem",
+                Text = "إيقاف التصحيح مؤقتاً"
+            };
+
             ToolStripSeparator separator =
                 new ToolStripSeparator();
 
@@ -51,6 +58,9 @@ namespace MiftahFix.Services
                 _showMenuItem);
 
             _contextMenu.Items.Add(
+                _pauseMenuItem);
+
+            _contextMenu.Items.Add(
                 separator);
 
             _contextMenu.Items.Add(
@@ -59,7 +69,7 @@ namespace MiftahFix.Services
             _notifyIcon = new NotifyIcon
             {
                 Text = "MiftahFix - مفتاح للتصحيح",
-                Icon = SystemIcons.Application,
+                Icon = LoadApplicationIcon(),
                 ContextMenuStrip = _contextMenu,
                 Visible = false
             };
@@ -72,6 +82,70 @@ namespace MiftahFix.Services
 
             _notifyIcon.DoubleClick +=
                 NotifyIcon_DoubleClick;
+
+            _pauseMenuItem.Click +=
+                (_, _) => PauseToggleRequested?.Invoke(this, EventArgs.Empty);
+
+            _notifyIcon.BalloonTipClicked +=
+                (_, _) => BalloonClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>يُطلق عند الضغط على "إيقاف مؤقت" أو "استئناف".</summary>
+        public event EventHandler?
+            PauseToggleRequested;
+
+        /// <summary>يُطلق عند النقر على الإشعار.</summary>
+        public event EventHandler?
+            BalloonClicked;
+
+        public void SetPaused(bool paused)
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _pauseMenuItem.Text = paused
+                ? "استئناف التصحيح"
+                : "إيقاف التصحيح مؤقتاً";
+
+            _notifyIcon.Text = paused
+                ? "MiftahFix - متوقف مؤقتاً"
+                : "MiftahFix - مفتاح للتصحيح";
+        }
+
+        /// <summary>
+        /// أيقونة البرنامج نفسه بدل أيقونة Windows العامة.
+        /// </summary>
+        private static Icon LoadApplicationIcon()
+        {
+            try
+            {
+                string iconPath =
+                    System.IO.Path.Combine(
+                        AppContext.BaseDirectory,
+                        "Assets",
+                        "app.ico");
+
+                if (System.IO.File.Exists(iconPath))
+                {
+                    return new Icon(iconPath);
+                }
+
+                Icon? associated =
+                    Icon.ExtractAssociatedIcon(
+                        Application.ExecutablePath);
+
+                if (associated != null)
+                {
+                    return associated;
+                }
+            }
+            catch
+            {
+            }
+
+            return SystemIcons.Application;
         }
 
         public event EventHandler?

@@ -1,0 +1,21 @@
+﻿Welcome to MiftahFix
+====================
+
+A small tool that fixes text typed with the wrong keyboard layout,
+e.g. "hgsghl ugd;l" instead of "السلام عليكم".
+
+What it does:
+  • Type, then press Ctrl + Shift + Space: what you typed is fixed
+    instantly and the keyboard language switches automatically.
+  • Or select any text and press the same shortcut.
+  • Warns you when you are typing in the wrong language, and can fix it automatically.
+  • Works in any program: browsers, Word, WhatsApp, Facebook...
+
+Your privacy:
+  What you type stays in memory only so it can be fixed. Nothing is saved or sent.
+  MiftahFix is free and open source under the MIT License.
+
+Developer: Mustafa Kamil (مصطفى كامل)
+Developer page: https://www.facebook.com/AynRutba/
+
+Made with love in Iraq ❤

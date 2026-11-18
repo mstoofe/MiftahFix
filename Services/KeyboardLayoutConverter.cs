@@ -42,6 +42,18 @@ namespace MiftahFix.Services
             };
         }
 
+        /// <summary>
+        /// الحرف العربي الذي يكتبه مفتاح معيّن (محدد بحرفه الإنجليزي) في لوحة العربية 101.
+        /// </summary>
+        public string MapPhysicalKeyToArabic(char physicalCharacter)
+        {
+            return _englishToArabic.TryGetValue(
+                    physicalCharacter,
+                    out string? arabicText)
+                ? arabicText
+                : physicalCharacter.ToString();
+        }
+
         public ConversionDirection DetectDirection(string text)
         {
             if (string.IsNullOrWhiteSpace(text))

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -33,8 +33,18 @@ namespace MiftahFix.Services
         public bool IsProcessing =>
             _isProcessing;
 
-        public async Task<SelectedTextReplacementResult>
+        public Task<SelectedTextReplacementResult>
             ReplaceSelectedTextAsync()
+        {
+            return ReplaceSelectedTextAsync(
+                ConversionDirection.Automatic,
+                Keys.Space);
+        }
+
+        public async Task<SelectedTextReplacementResult>
+            ReplaceSelectedTextAsync(
+                ConversionDirection direction,
+                Keys hotkeyKey)
         {
             if (_isProcessing)
             {
@@ -46,6 +56,7 @@ namespace MiftahFix.Services
 
             string? previousClipboardText = null;
             bool hadPreviousClipboardText = false;
+            DataObject? previousClipboardData = null;
 
             IntPtr targetWindow =
                 GetForegroundWindow();
@@ -53,14 +64,13 @@ namespace MiftahFix.Services
             try
             {
                 bool keysReleased =
-                    await WaitForHotkeyKeysReleasedAsync(
-                        maximumAttempts: 60,
-                        delayMilliseconds: 20);
+                    await NativeInput.WaitForKeysReleasedAsync(
+                        hotkeyKey);
 
                 if (!keysReleased)
                 {
                     return SelectedTextReplacementResult.Fail(
-                        "حرر مفاتيح Ctrl وShift ثم حاول مرة أخرى.");
+                        "ارفع يدك عن مفاتيح الاختصار ثم حاول مرة أخرى.");
                 }
 
                 if (targetWindow == IntPtr.Zero)
@@ -68,6 +78,9 @@ namespace MiftahFix.Services
                     return SelectedTextReplacementResult.Fail(
                         "تعذر تحديد النافذة التي تحتوي على النص المحدد.");
                 }
+
+                previousClipboardData =
+                    CaptureClipboardData();
 
                 try
                 {
@@ -121,7 +134,7 @@ namespace MiftahFix.Services
                 string convertedText =
                     _converter.Convert(
                         selectedText,
-                        ConversionDirection.Automatic);
+                        direction);
 
                 if (string.Equals(
                     selectedText,
@@ -167,7 +180,13 @@ namespace MiftahFix.Services
             }
             finally
             {
-                if (hadPreviousClipboardText &&
+                if (previousClipboardData != null)
+                {
+                    await RestoreClipboardDataAsync(
+                        previousClipboardData,
+                        previousClipboardText);
+                }
+                else if (hadPreviousClipboardText &&
                     previousClipboardText != null)
                 {
                     await RestoreClipboardTextAsync(
@@ -307,51 +326,6 @@ namespace MiftahFix.Services
         }
 
         private static async Task<bool>
-            WaitForHotkeyKeysReleasedAsync(
-                int maximumAttempts,
-                int delayMilliseconds)
-        {
-            for (int attempt = 0;
-                 attempt < maximumAttempts;
-                 attempt++)
-            {
-                bool controlPressed =
-                    IsKeyPressed(
-                        VirtualKeyControl);
-
-                bool shiftPressed =
-                    IsKeyPressed(
-                        VirtualKeyShift);
-
-                bool spacePressed =
-                    IsKeyPressed(
-                        VirtualKeySpace);
-
-                if (!controlPressed &&
-                    !shiftPressed &&
-                    !spacePressed)
-                {
-                    return true;
-                }
-
-                await Task.Delay(
-                    delayMilliseconds);
-            }
-
-            return false;
-        }
-
-        private static bool IsKeyPressed(
-            int virtualKey)
-        {
-            short state =
-                GetAsyncKeyState(
-                    virtualKey);
-
-            return (state & 0x8000) != 0;
-        }
-
-        private static async Task<bool>
             ClearClipboardWithRetryAsync()
         {
             for (int attempt = 0;
@@ -468,6 +442,99 @@ namespace MiftahFix.Services
                 {
                     await Task.Delay(60);
                 }
+            }
+        }
+
+        /// <summary>
+        /// نسخة من كل محتوى الحافظة (صور، ملفات، نص منسق...) لإرجاعها بعد التصحيح.
+        /// </summary>
+        private static DataObject? CaptureClipboardData()
+        {
+            try
+            {
+                IDataObject? current =
+                    Clipboard.GetDataObject();
+
+                if (current == null)
+                {
+                    return null;
+                }
+
+                string[] formats =
+                    current.GetFormats(
+                        autoConvert: false);
+
+                if (formats.Length == 0)
+                {
+                    return null;
+                }
+
+                DataObject copy = new();
+                int copiedFormats = 0;
+
+                foreach (string format in formats)
+                {
+                    try
+                    {
+                        object? data =
+                            current.GetData(
+                                format,
+                                autoConvert: false);
+
+                        if (data != null)
+                        {
+                            copy.SetData(
+                                format,
+                                data);
+
+                            copiedFormats++;
+                        }
+                    }
+                    catch
+                    {
+                        // بعض الصيغ الخاصة لا يمكن نسخها، نتجاوزها.
+                    }
+                }
+
+                return copiedFormats > 0
+                    ? copy
+                    : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static async Task
+            RestoreClipboardDataAsync(
+                DataObject previousData,
+                string? previousText)
+        {
+            await Task.Delay(250);
+
+            for (int attempt = 0;
+                 attempt < 10;
+                 attempt++)
+            {
+                try
+                {
+                    Clipboard.SetDataObject(
+                        previousData,
+                        copy: true);
+
+                    return;
+                }
+                catch
+                {
+                    await Task.Delay(60);
+                }
+            }
+
+            if (previousText != null)
+            {
+                await RestoreClipboardTextAsync(
+                    previousText);
             }
         }
 

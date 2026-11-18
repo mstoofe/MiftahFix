@@ -3,9 +3,69 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+
+    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <AssemblyName>MiftahFix</AssemblyName>
+    <RootNamespace>MiftahFix</RootNamespace>
+
+    <Product>MiftahFix</Product>
+    <Title>MiftahFix</Title>
+    <Description>أداة لتصحيح النصوص المكتوبة باستخدام تخطيط لوحة مفاتيح غير صحيح.</Description>
+    <Company>Mustafa Kamil</Company>
+    <Authors>Mustafa Kamil (مصطفى كامل)</Authors>
+    <Copyright>Copyright © 2026 Mustafa Kamil (مصطفى كامل) - MIT License</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/mstoofe/MiftahFix</RepositoryUrl>
+
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <InformationalVersion>1.1.0</InformationalVersion>
+
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
+
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UI\Controls\" />
+    <Folder Include="UI\Themes\" />
+  </ItemGroup>
 
 </Project>

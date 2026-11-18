@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# MiftahFix: ملفات المثبّت تُرفع في Releases وليس مع الكود
+InstallerOutput/
+*.Backup.tmp
