@@ -15,6 +15,19 @@
 #define MyAppIcon "Assets\app.ico"
 #define MyAppPublishFolder "bin\Release\net10.0-windows\win-x64\publish"
 
+; ============================================================
+; بناء نسخة البرنامج النهائية تلقائياً قبل إنشاء المثبّت،
+; فيكفي الضغط على Compile فقط. لتعطيله اجعل القيمة 0.
+; ============================================================
+#define AutoPublish 1
+
+#if AutoPublish
+  #define PublishExitCode Exec("cmd.exe", "/c dotnet publish MiftahFix.csproj -c Release", SourcePath, 1, 0)
+  #if PublishExitCode != 0
+    #error "فشل بناء البرنامج (dotnet publish). افتح المشروع في Visual Studio وتأكد أنه يُبنى بدون أخطاء."
+  #endif
+#endif
+
 [Setup]
 AppId={{B52BBE9F-5F65-4C31-8E67-6AA0F04A7B21}
 AppName={#MyAppName}
